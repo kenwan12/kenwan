@@ -1,0 +1,40 @@
+
+For working with Windows OpenTSDB version 2.1.5 or above
+
+
+To make use of the OpenTSDB PowerShell suite implemented, external programs are assumed to behave as follows :-
+
+1.	output each metric per line to standard output whereas errors should be written elsewhere
+
+
+	TSD_metric_name Epoch_time Metric_value tag1=value1 tag2=value2 tag3=value3 ...
+
+
+	where	TSD_metric_name			win.asp.net_apps_v4.0.30319   (spaces replaced by _)
+
+
+		Essential tags include :-		Example
+
+		type=				anonymous_requests/sec
+		host=				mysite1.co.uk
+		cluster=			nexus
+		class=				www
+		instance=			mysite.co.uk
+
+	For getting the right tags in PowerShell, there is a get_tags function defined by
+
+	globals.ps1
+
+	under C:\Program Files\OpenTSDB
+
+	Please refer to   w3wp_metrics.ps1   for an illustration
+
+
+2.	can be run from Powershell interactively and as a background job
+
+
+3.	should take at least 2 arguments :-
+	1st parameter :	metric_set/collection_set   (which the program may.may not sue it for checking)
+	2nd parameter :	the number of seconds per loop   (if less than or equal to 0, set to 30 by default)
+
+ 
