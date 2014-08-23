@@ -1,4 +1,4 @@
 kenwan
 ======
 
-Tools to help you speed up your work
+Some tools to help you speed up your work :-)
