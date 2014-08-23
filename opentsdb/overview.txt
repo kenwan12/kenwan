@@ -1,0 +1,91 @@
+
+OverView
+========
+
+1. Windows tcollector (wtcollector.ps1) + default collector (collector.sp1) written in PowerShell
+
+2. Each collector can be run as
+
+   collector.sp1 metric_set [loop_time]
+
+   The metric_set metrics are given in 2 files : metric_set._s for static metrics and metric_set._n for non-static metrics
+   with loop_time default to 30s
+
+   The file are refreshed via a call to the nget_config.ps1 script
+   which regenerate non-static metrics every loop and static ones for the static file is NOT found
+
+   This script must be able to be run as a job via start-job
+
+3. The wtcollector :-
+
+   The tcollector in Windows conforms to the Linux version of running the collector(s) found under
+   the loop_time folder(s) under the collectors folder
+
+   It will start such collector(s) when the it first starts and then collect the outputs of all the collector(s)
+   every loop_time (default is 30s)
+
+   It will re-start folder 0 jobs if they are found not running at each loop - just make sure the programs are there !!!
+
+
+
+
+               config.ps1 ----------------> update and make ready the collector(s)
+                                            remove the metric_set._? files
+                  |read each time
+                  |
+                  |                                                                    OpenTSDB service
+                  |
+                  |                                                                            |
+                  |                                                                            | srvany.exe
+                  |                                                                            |
+                  |                                                                            |
+                  |                            OpenTSDB.ps1 <-------- OpenTSB.exe <-------------
+                  |                                                   C# executable
+                  |                                 |
+                  |                                 |
+                  |                                 |   perform housekeeping tasks
+                  |                                 |   will call config.ps1 if globals.conf changed            
+                  |                                 |
+                  |                                 |
+                  |                                 |
+                  |                                 |                 single TCP persistent connection
+
+                globals.conf <----------------- wtcollector.ps1 ------------------------------> TSD Port 4242
+
+                  |                            starting the collector(s) as jobs                       |
+                  |                                                                                    |
+                  |                                                 |                                  |
+                  |                                                 |                                  |
+                  |                                                 |                                  |
+                  |read each time                                   |
+                  |                                                 |                            YYYYMMDDHHmmss
+                  |                                                 |                                files
+                                                                    |
+ Perfmon  <->  nget_config.ps1 -------------------> metric_set._s   |
+ Counters                                            metric_set._n  |
+            use  get-counter   to get metric keys                   |
+                 get_config.pat   to filter to get    |             |
+                    .                valid tags       |             |
+                    .                                 |             |start-job
+                    .                                 |             |receive-job to get any result each loop
+                    .                                 |             |
+                    .                                 |             |
+                    . called each loop                              |
+                    ............................ collector.ps1 ------
+
+                                      (can have multiple instances + external programs)
+
+                                            use   get-counter   to retrieve the metrics values
+
+
+
+
+4. Use a C# OpenTSDB.exe file to call OpenTSDB.ps1
+
+5. Use srvany.exe of Windows Resource Kits to create the service with the nSet_Service.ps1 script
+
+
+
+Ken Wan
+
+22/8/2014

@@ -1,0 +1,33 @@
+INSTALLATION for Version 2.1.8
+==============================
+
+1.	Check can connect to	TSD  (i.e. tsd.... or its IP)   Port 4242
+	- see settings in   globals.ps1
+
+
+2.	Copy the content of the SVN folder i.e. ...\winsys_eu\OpenTSDB to 	C:\'Program Files'\OpenTSDB
+	(create it if necessary)
+
+
+3.	To use the default colelction i.e. the baseline set of system metrics, you can simply run
+
+	& C:\'Program Files'\OpenTSDB\config.ps1
+
+4.	Test run with	.\collector.ps1 default 10
+	to see if you do get the metrics info displayed interactively
+
+5.	Test run with	C:\'Program Files'\OpenTSDB\OpenTSDB.exe
+
+	And check the folder   data\done\YYYYMMDD   for files generated to ensure everything is correct
+	- need to wait for a few minutes perhaps
+
+6.	Make it into a service by		.\nSet_Service.ps1  OpenTSDB
+	then run command 			Start-Service OpenTSDB
+
+
+NB:	If there is any change in the   globals.conf   i.e. add more metric sets or split them into smaller sets etc.,
+	remember to restart the  OpenTSDDB  service for changes to be picked up
+
+	Please DO make use of the step 3 & 4 for your testing of the results of any change made if not sure
+	before restarting the OpenTSDB service :-)
+ 
