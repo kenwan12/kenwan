@@ -1,0 +1,141 @@
+
+Overview
+========
+
+In Zabbix, you have at least 3 main entities, namely, Hosts, Templates & HostGroups which is a collection of hosts.
+
+Hosts can have templates via linkages and you can also link HostGroups with templates.
+However, there is a deficiency that new hosts added to a HostGroup with assigned templates do not have the
+templates passed on to them !
+
+So, we have to come up with something to complete the task which is fortunately not mission impossible.
+
+Zabbix's backend is written in C and we have a web front-end written in PHP but we simply don't have a
+CLI component, at least officially.
+
+To support bulk processing and additional manipulation requirements, there comes a workaround in providing
+the Zabbix API via the URL http://zabbix_server/zabbix/api_jsonrpc.php
+
+In short, we can send a HTTP POST request to the above URL with a Zabbix request wrapped in JSON format as
+the data content and then check the response for the result !
+
+It is quite simple and straightforward in theory, but there is no handy tool to do it.
+
+For details, pls refer to the Zabbix API section under the Zabbix documentation.
+
+There are quite a number of ways shared via the user community including
+
+ruby
+PHP
+Perl
+
+which I had explored.
+
+Having considered that the API is quite simple and the task to be performed is not very demanding
+AND we do not own the servers plus the resources, so I tend to use the simplest approach which is
+
+1. Just use whatever come with a default Linux box i.e. we need not install additional packages, modules or components
+2. It is a relatively easy language for us to use for system administration
+3. I can make it simple for deployment and maintenance
+
+
+So the solution is to use the default Perl installed on a Linux box which requires the curl package to handle the HTTP part
+which is normally installed as well.
+
+Thus, We have
+1.	the basic wrapper in		tm_zabbix_api.pl
+2.	extra functions to perform the task (and can expand to include more) in		tm_zabbix-lib.pl
+
+
+
+A sample session to get the API version is given as follows :-
+
+Assuming you have the wrapper under the current directory, you do
+
+$ cat > sample.pl <<EOF
+require "tm_zabbix_api.pl";
+api_init('localhost','admin','zabbix_admin_pwd');
+$lauth=new_request();
+$lres=simple_request($lauth,'apiinfo.version');
+print "\n$lres\n";
+EOF
+$
+
+$ perl sample.pl | more
+
+   will display the result of the HTTP response !
+
+
+You may also have a go for
+
+
+$lres=simple_request($lauth,'host.get','"hostids": ["10049"],"output": "extend"');
+
+$lres=simple_request($lauth,'hostgroup.get','"output": "extend","templated_hosts":1');
+
+$lres=simple_request($lauth,'template.get');
+
+Cheers :-)
+
+
+
+
+Task Overview
+=============
+
+All configuration information is stored in say MySQL which uses normalised tables.
+
+So there is no direct tables to get the linkage info, we need to go with the API get parameters
+to pick out the details
+
+1. host.get
+
+   hostids, groupids, templateids
+   hostid
+   templated_hosts
+   filter with host array
+
+2. hostgroup.get
+
+   hostids, groupids, templateids
+   groupid
+   filter with name array
+
+3. template.get
+
+   hostids, groupids, templateids
+   hostid
+   select_hosts
+   filter
+
+
+Steps:
+=====
+
+A. Loop thru a Host Group to get the list of hosts, say list A
+
+B. Loop thru the Host Group to get the list of templates, say list B
+
+C. Loop thru list B for each template
+
+      get the list of hosts linked to it and check if list A is a sublist, if not,
+      assign the missing hosts to this template
+
+      we can either   link to it from the missed-out host(s) i.e. host.update
+      or   assign the missing host(s) from the template i.e. template.update (more efficient ?)
+
+   Finish when all the templates have been dealt with
+
+D. We need to loop thru all the host groups for the above action for the Zabbix site !
+
+
+We most likely have to make use of bulk updates if performance is an issue !
+
+
+
+--------------------------------------------------------------------------------------------------------------------------------
+
+Ken Wan
+
+6/8/2012
+
